@@ -49,7 +49,14 @@ const Leave = () => {
         .order('requested_at', { ascending: false });
 
       if (error) throw error;
-      setLeaveRequests(data || []);
+      
+      // Type assertion to ensure status is properly typed
+      const typedRequests: LeaveRequest[] = (data || []).map(request => ({
+        ...request,
+        status: request.status as 'pending' | 'approved' | 'denied'
+      }));
+      
+      setLeaveRequests(typedRequests);
     } catch (error) {
       console.error('Error fetching leave requests:', error);
       toast.error('연차 신청 목록을 불러오는 중 오류가 발생했습니다.');
