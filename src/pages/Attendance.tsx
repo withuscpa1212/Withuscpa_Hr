@@ -21,6 +21,7 @@ const Attendance = () => {
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [todayRecord, setTodayRecord] = useState<AttendanceRecord | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     if (profile) {
@@ -32,6 +33,7 @@ const Attendance = () => {
     if (!profile) return;
 
     try {
+      console.log('Fetching attendance records for user:', profile.id);
       const { data, error } = await supabase
         .from('attendance')
         .select('*')
@@ -39,14 +41,19 @@ const Attendance = () => {
         .order('date', { ascending: false })
         .limit(30);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
+      console.log('Fetched attendance data:', data);
       setAttendanceRecords(data || []);
       
       // 오늘 출근 기록 찾기
       const today = new Date().toISOString().split('T')[0];
       const todayAttendance = data?.find(record => record.date === today);
       setTodayRecord(todayAttendance || null);
+      console.log('Today attendance record:', todayAttendance);
     } catch (error) {
       console.error('Error fetching attendance:', error);
       toast.error('출근 기록을 불러오는 중 오류가 발생했습니다.');
@@ -58,30 +65,49 @@ const Attendance = () => {
   const handleClockAction = async () => {
     if (!profile) return;
 
+    setActionLoading(true);
     try {
       const today = new Date().toISOString().split('T')[0];
       const now = new Date().toISOString();
 
+      console.log('Clock action - Today:', today, 'Now:', now, 'Today record:', todayRecord);
+
       if (!todayRecord) {
         // 출근 처리
-        const { error } = await supabase
+        console.log('Inserting new attendance record');
+        const { data, error } = await supabase
           .from('attendance')
           .insert({
             user_id: profile.id,
             date: today,
             clock_in: now
-          });
+          })
+          .select()
+          .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Insert error:', error);
+          throw error;
+        }
+
+        console.log('Inserted attendance record:', data);
         toast.success('출근이 처리되었습니다!');
       } else if (todayRecord.clock_in && !todayRecord.clock_out) {
         // 퇴근 처리
-        const { error } = await supabase
+        console.log('Updating attendance record for clock out');
+        const { data, error } = await supabase
           .from('attendance')
           .update({ clock_out: now })
-          .eq('id', todayRecord.id);
+          .eq('id', todayRecord.id)
+          .select()
+          .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update error:', error);
+          throw error;
+        }
+
+        console.log('Updated attendance record:', data);
         toast.success('퇴근이 처리되었습니다!');
       } else {
         toast.info('오늘은 이미 출퇴근이 완료되었습니다.');
@@ -92,6 +118,8 @@ const Attendance = () => {
     } catch (error) {
       console.error('Error handling clock action:', error);
       toast.error('출퇴근 처리 중 오류가 발생했습니다.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -178,8 +206,13 @@ const Attendance = () => {
                 <p className="text-gray-500">아직 출근하지 않았습니다.</p>
               )}
             </div>
-            <Button onClick={handleClockAction} size="lg">
-              {!todayRecord ? '출근' : 
+            <Button 
+              onClick={handleClockAction} 
+              size="lg"
+              disabled={actionLoading || (todayRecord?.clock_in && todayRecord?.clock_out)}
+            >
+              {actionLoading ? '처리 중...' :
+               !todayRecord ? '출근' : 
                todayRecord.clock_in && !todayRecord.clock_out ? '퇴근' : '완료'}
             </Button>
           </div>

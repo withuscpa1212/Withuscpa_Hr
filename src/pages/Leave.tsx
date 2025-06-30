@@ -26,6 +26,7 @@ const Leave = () => {
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [formData, setFormData] = useState({
     start_date: '',
     end_date: '',
@@ -42,14 +43,19 @@ const Leave = () => {
     if (!profile) return;
 
     try {
+      console.log('Fetching leave requests for user:', profile.id);
       const { data, error } = await supabase
         .from('leave_requests')
         .select('*')
         .eq('user_id', profile.id)
         .order('requested_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       
+      console.log('Fetched leave requests:', data);
       // Type assertion to ensure status is properly typed
       const typedRequests: LeaveRequest[] = (data || []).map(request => ({
         ...request,
@@ -79,8 +85,17 @@ const Leave = () => {
       return;
     }
 
+    setSubmitLoading(true);
     try {
-      const { error } = await supabase
+      console.log('Submitting leave request:', {
+        user_id: profile.id,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        reason: formData.reason || null,
+        status: 'pending'
+      });
+
+      const { data, error } = await supabase
         .from('leave_requests')
         .insert({
           user_id: profile.id,
@@ -88,10 +103,16 @@ const Leave = () => {
           end_date: formData.end_date,
           reason: formData.reason || null,
           status: 'pending'
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Insert error:', error);
+        throw error;
+      }
 
+      console.log('Inserted leave request:', data);
       toast.success('연차 신청이 완료되었습니다!');
       setShowForm(false);
       setFormData({ start_date: '', end_date: '', reason: '' });
@@ -99,6 +120,8 @@ const Leave = () => {
     } catch (error) {
       console.error('Error submitting leave request:', error);
       toast.error('연차 신청 중 오류가 발생했습니다.');
+    } finally {
+      setSubmitLoading(false);
     }
   };
 
@@ -159,7 +182,7 @@ const Leave = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="start_date">시작일</Label>
+                  <Label htmlFor="start_date">시작일 *</Label>
                   <Input
                     id="start_date"
                     type="date"
@@ -169,7 +192,7 @@ const Leave = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="end_date">종료일</Label>
+                  <Label htmlFor="end_date">종료일 *</Label>
                   <Input
                     id="end_date"
                     type="date"
@@ -190,7 +213,9 @@ const Leave = () => {
                 />
               </div>
               <div className="flex space-x-2">
-                <Button type="submit">신청하기</Button>
+                <Button type="submit" disabled={submitLoading}>
+                  {submitLoading ? '신청 중...' : '신청하기'}
+                </Button>
                 <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
                   취소
                 </Button>

@@ -13,7 +13,8 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     name: '',
     department: '',
-    position: ''
+    position: '',
+    hire_date: ''
   });
 
   const handleEdit = () => {
@@ -21,7 +22,8 @@ const Profile = () => {
       setFormData({
         name: profile.name || '',
         department: profile.department || '',
-        position: profile.position || ''
+        position: profile.position || '',
+        hire_date: profile.hire_date || ''
       });
       setIsEditing(true);
     }
@@ -29,17 +31,24 @@ const Profile = () => {
 
   const handleSave = async () => {
     try {
-      await updateProfile(formData);
+      console.log('Saving profile data:', formData);
+      await updateProfile({
+        name: formData.name,
+        department: formData.department,
+        position: formData.position,
+        hire_date: formData.hire_date || null
+      });
       setIsEditing(false);
       toast.success('프로필이 성공적으로 업데이트되었습니다!');
     } catch (error) {
+      console.error('Profile update error:', error);
       toast.error('프로필 업데이트 중 오류가 발생했습니다.');
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    setFormData({ name: '', department: '', position: '' });
+    setFormData({ name: '', department: '', position: '', hire_date: '' });
   };
 
   if (loading) {
@@ -61,7 +70,7 @@ const Profile = () => {
         <CardHeader>
           <CardTitle>개인 정보</CardTitle>
           <CardDescription>
-            이름과 부서, 직급 정보를 관리할 수 있습니다.
+            이름과 부서, 직급, 입사일 정보를 관리할 수 있습니다.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -108,12 +117,13 @@ const Profile = () => {
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="name">이름</Label>
+                  <Label htmlFor="name">이름 *</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="이름을 입력하세요"
+                    required
                   />
                 </div>
                 <div>
@@ -126,17 +136,27 @@ const Profile = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="position">직급</Label>
+                  <Label htmlFor="position">직급 *</Label>
                   <Input
                     id="position"
                     value={formData.position}
                     onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                     placeholder="직급을 입력하세요"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="hire_date">입사일</Label>
+                  <Input
+                    id="hire_date"
+                    type="date"
+                    value={formData.hire_date}
+                    onChange={(e) => setFormData({ ...formData, hire_date: e.target.value })}
                   />
                 </div>
               </div>
               <div className="flex space-x-2 pt-4">
-                <Button onClick={handleSave}>
+                <Button onClick={handleSave} disabled={!formData.name || !formData.position}>
                   저장
                 </Button>
                 <Button variant="outline" onClick={handleCancel}>
