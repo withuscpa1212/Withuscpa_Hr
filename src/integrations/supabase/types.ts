@@ -9,6 +9,191 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      attendance: {
+        Row: {
+          clock_in: string | null
+          clock_out: string | null
+          created_at: string | null
+          date: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          clock_in?: string | null
+          clock_out?: string | null
+          created_at?: string | null
+          date: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          clock_in?: string | null
+          clock_out?: string | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "remaining_leaves"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "attendance_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_requests: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          end_date: string
+          id: string
+          reason: string | null
+          requested_at: string | null
+          start_date: string
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          end_date: string
+          id?: string
+          reason?: string | null
+          requested_at?: string | null
+          start_date: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          end_date?: string
+          id?: string
+          reason?: string | null
+          requested_at?: string | null
+          start_date?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "remaining_leaves"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "leave_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "remaining_leaves"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "leave_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          type?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "remaining_leaves"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          email: string
+          hire_date: string | null
+          id: string
+          name: string | null
+          position: string | null
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          email: string
+          hire_date?: string | null
+          id: string
+          name?: string | null
+          position?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          email?: string
+          hire_date?: string | null
+          id?: string
+          name?: string | null
+          position?: string | null
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       "Watt-Hr": {
         Row: {
           created_at: string
@@ -26,10 +211,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      remaining_leaves: {
+        Row: {
+          earned_days: number | null
+          hire_date: string | null
+          name: string | null
+          remaining_days: number | null
+          total_months: number | null
+          used_days: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      broadcast_announcement: {
+        Args: { title: string; content: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
