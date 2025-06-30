@@ -9,6 +9,9 @@ import Layout from "@/components/Layout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
+import Attendance from "./pages/Attendance";
+import Leave from "./pages/Leave";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +28,9 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<Layout />}>
               <Route path="dashboard" element={<Dashboard />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="attendance" element={<Attendance />} />
+              <Route path="leave" element={<Leave />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

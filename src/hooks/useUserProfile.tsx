@@ -38,7 +38,14 @@ export const useUserProfile = () => {
         .single();
 
       if (error) throw error;
-      setProfile(data);
+      
+      // Type assertion to ensure role is properly typed
+      const typedProfile: UserProfile = {
+        ...data,
+        role: data.role as 'admin' | 'manager' | 'employee'
+      };
+      
+      setProfile(typedProfile);
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
